@@ -1,0 +1,87 @@
+What is Rest endpoints verbs or nouns
+Complete abt REST
+How can u validate jwt token in backend
+About and Alternative of jwt
+Functionality of OAuth
+Def of iterators generators decorators
+Fibonacci using generator
+Define mro
+Implement Multiple exceptions and create customexception class
+What is finally and where do we use in real time
+Diff between thread nd process
+Diff between asyncio and thread
+Can api calls be called as io tasks for thread
+Explain GIL in thread and process
+Default testing module in python
+Fixtures in python
+What is mock and why we will use it
+What is virtualenv and how can we send all the dependencies to other ppl
+How do u debug the code like logging print statements
+Acid properties
+Wht mean by dirty read
+Wht is indexing
+Disadvantages of indexing
+Whts mean by docker containerisation
+Diff docker nd docker compose
+What are volumes in docker
+Wht datastructure gives a pop complexity of O(1) for poping first ele
+Explain how heap works
+Poping in heap
+Functionality of heapify
+Solid principles
+Design patterns
+What is router in fastapi
+REST architecture and implementation
+Websockets working
+3 way handshake
+AWS VPc
+Subnet and usage and representation
+Dynamodb
+Diff ec2 and lambda
+Lambda func duration
+Diff between relational nd non relationship db
+Binary search prob
+Wht is orm
+Git pull
+Git rebase
+Chunking and its types
+Langraph
+Readme file - imp setup
+Proj code
+
+Git concepts: rebase, cherry pickin, diff bw merge and rebase
+Python:
+List comprehension and implementation with code, dict comprehension with code
+Oops concept, diff bw ds. Ex code for each pillar with def
+All python ds
+Which is better set or dict, which is used for faster retrieval
+Code for above ds, how
+Context managers, write ex code
+*Iterators, generators, decorators. Use and ex code for each and we used and which is better and why*
+Multithreading and multitasking : implementation on both ways with code
+Garbage collection in python, how its implemented. In detail from low level how python manges it.  GC library for gb collection
+Prepare initial modules very well, basic, med, adv
+What is duck typing, ex code and its explanation
+Design patterns, SOLID principles def ex and code
+Database
+Sql: write queries, diff bw groupby, having, orderby. Where we use CTE, sqlalchemy
+Indexing, keys, views, aggregate functions, JOINS
+ACID properties, transaction principles, BASE properties for NoSQL
+Diff
+SOLID explain all principles, DRY, KISS, YAGNI.
+Design patterns, explain two to three
+DSA: comfortable with tree, graph. Linkedlist, stack queue, with code
+Write and reverse a linkedlist.
+
+Docker:
+What is it, important commands for it.
+Logging:
+How its implemented, what concepts you are using in project. Library of logging
+
+AWS:
+Aws: what are ec2, subnets. How do you create alert for billing. Basic services of aws and why we use it
+Machine Learning: Diff bw supervised and unsupervised, k means, knn, svm, pca working and diff, where to use which one and why
+GenAI: about the project end to end flow, langchan, langgraph, vectordb, rag,
+FastAPI: write sample how to declare a route, diff b/w Django and fastapi, which is better and why. Why pydantic is used. How will you declare fastapi. How its exposed in swagger get, post, put, patch, delete-> diff bw these methods
+GenAI: project: end to end flow of everything, whats your contribution indetail, what concepts and why others have used. What is ML, DL.
+Transformer architecture, and what is it. Langgraph, langchain
