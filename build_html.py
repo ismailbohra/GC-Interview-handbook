@@ -647,10 +647,6 @@ strong {{
 /* Mobile */
 .menu-toggle {{
     display: none;
-    position: fixed;
-    top: 14px;
-    left: 14px;
-    z-index: 200;
     width: 40px;
     height: 40px;
     border-radius: 8px;
@@ -661,6 +657,7 @@ strong {{
     cursor: pointer;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }}
 
 /* Sidebar overlay backdrop */
@@ -705,16 +702,18 @@ strong {{
     }}
     .top-bar {{
         padding: 10px 16px;
-        padding-left: 58px;
-        gap: 8px;
+        gap: 10px;
         flex-wrap: wrap;
+        align-items: center;
     }}
     .menu-toggle {{
         display: flex;
+        order: 0;
     }}
     .search-box {{
-        flex: 1 1 100%;
-        max-width: 100%;
+        flex: 1 1 0;
+        min-width: 0;
+        max-width: none;
         order: 1;
     }}
     .toolbar-actions {{
@@ -790,7 +789,6 @@ strong {{
     }}
     .top-bar {{
         padding: 8px 12px;
-        padding-left: 54px;
     }}
     .main-title {{
         font-size: 20px;
@@ -832,7 +830,6 @@ strong {{
 
 <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
 
-<button class="menu-toggle" id="menuToggle" onclick="toggleSidebar()">☰</button>
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
 <nav class="sidebar" id="sidebar">
@@ -844,6 +841,7 @@ strong {{
 </nav>
 
 <div class="top-bar">
+    <button class="menu-toggle" id="menuToggle" onclick="toggleSidebar()">☰</button>
     <div class="search-box">
         <input type="text" id="searchInput" placeholder="Search questions... (Ctrl+K)" autocomplete="off">
     </div>
