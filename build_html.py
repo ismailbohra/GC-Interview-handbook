@@ -706,10 +706,27 @@ strong {{
     .top-bar {{
         padding: 10px 16px;
         padding-left: 58px;
-        gap: 10px;
+        gap: 8px;
+        flex-wrap: wrap;
     }}
     .menu-toggle {{
         display: flex;
+    }}
+    .search-box {{
+        flex: 1 1 100%;
+        max-width: 100%;
+        order: 1;
+    }}
+    .toolbar-actions {{
+        gap: 6px;
+        order: 2;
+        flex: 1 1 100%;
+    }}
+    .tool-btn {{
+        padding: 6px 12px;
+        font-size: 11px;
+        flex: 1;
+        text-align: center;
     }}
     .main-title {{
         font-size: 24px;
@@ -745,13 +762,6 @@ strong {{
         white-space: pre;
         word-break: normal;
         overflow-wrap: normal;
-    }}
-    .toolbar-actions {{
-        gap: 4px;
-    }}
-    .tool-btn {{
-        padding: 6px 10px;
-        font-size: 11px;
     }}
     .search-box input {{
         font-size: 14px;
