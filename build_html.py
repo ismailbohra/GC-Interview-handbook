@@ -7,7 +7,7 @@ import html as html_module
 import re
 
 MD_PATH = "interview_questions.md"
-HTML_PATH = "interview_questions.html"
+HTML_PATH = "index.html"
 
 
 def parse_md(text: str) -> str:
