@@ -663,11 +663,33 @@ strong {{
     justify-content: center;
 }}
 
+/* Sidebar overlay backdrop */
+.sidebar-overlay {{
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 99;
+}}
+
+.sidebar-overlay.active {{
+    display: block;
+}}
+
+/* Tablet */
+@media (max-width: 1100px) {{
+    .main-content {{
+        padding: 30px 30px 80px;
+    }}
+}}
+
+/* Mobile */
 @media (max-width: 900px) {{
     .sidebar {{
         transform: translateX(-100%);
-        transition: transform 0.3s;
-        width: 260px;
+        transition: transform 0.3s ease;
+        width: 280px;
+        box-shadow: 4px 0 24px rgba(0,0,0,0.5);
     }}
     .sidebar.open {{
         transform: translateX(0);
@@ -679,16 +701,119 @@ strong {{
         left: 0;
     }}
     .main-content {{
-        padding: 30px 20px 80px;
+        padding: 24px 16px 80px;
     }}
     .top-bar {{
-        padding: 12px 20px;
+        padding: 10px 16px;
+        padding-left: 58px;
+        gap: 10px;
     }}
     .menu-toggle {{
         display: flex;
     }}
     .main-title {{
-        font-size: 26px;
+        font-size: 24px;
+    }}
+    .section-title {{
+        font-size: 20px;
+        gap: 10px;
+    }}
+    .section-number {{
+        font-size: 12px;
+        padding: 3px 8px;
+    }}
+    .question-header {{
+        padding: 14px 16px;
+    }}
+    .question-header h3 {{
+        font-size: 14px;
+        gap: 8px;
+    }}
+    .answer-body {{
+        padding: 0 16px 16px;
+    }}
+    .code-block {{
+        border-radius: 8px;
+        margin: 12px -8px;
+    }}
+    pre {{
+        padding: 12px;
+        font-size: 12px;
+    }}
+    pre code {{
+        font-size: 12px;
+        white-space: pre;
+        word-break: normal;
+        overflow-wrap: normal;
+    }}
+    .toolbar-actions {{
+        gap: 4px;
+    }}
+    .tool-btn {{
+        padding: 6px 10px;
+        font-size: 11px;
+    }}
+    .search-box input {{
+        font-size: 14px;
+        padding: 8px 12px 8px 36px;
+    }}
+    .scroll-top {{
+        bottom: 20px;
+        right: 16px;
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }}
+    .inline-code {{
+        font-size: 0.82em;
+        word-break: break-word;
+    }}
+    .topic-section {{
+        margin-bottom: 32px;
+    }}
+}}
+
+/* Small phones */
+@media (max-width: 480px) {{
+    .main-content {{
+        padding: 16px 12px 80px;
+    }}
+    .top-bar {{
+        padding: 8px 12px;
+        padding-left: 54px;
+    }}
+    .main-title {{
+        font-size: 20px;
+    }}
+    .section-title {{
+        font-size: 18px;
+        flex-wrap: wrap;
+    }}
+    .question-header {{
+        padding: 12px 14px;
+    }}
+    .question-header h3 {{
+        font-size: 13px;
+    }}
+    .answer-body p {{
+        font-size: 14px;
+        line-height: 1.7;
+    }}
+    .code-block {{
+        margin: 10px -6px;
+    }}
+    pre {{
+        padding: 10px;
+    }}
+    pre code {{
+        font-size: 11px;
+    }}
+    .search-box input {{
+        font-size: 14px;
+    }}
+    .tool-btn {{
+        padding: 6px 8px;
+        font-size: 10px;
     }}
 }}
 </style>
@@ -697,7 +822,8 @@ strong {{
 
 <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
 
-<button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+<button class="menu-toggle" id="menuToggle" onclick="toggleSidebar()">☰</button>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
 <nav class="sidebar" id="sidebar">
     <div class="sidebar-header">
@@ -806,10 +932,19 @@ const observer = new IntersectionObserver(entries => {{
 
 document.querySelectorAll('.topic-section').forEach(s => observer.observe(s));
 
+// Toggle mobile sidebar
+function toggleSidebar() {{
+    document.querySelector('.sidebar').classList.toggle('open');
+    document.getElementById('sidebarOverlay').classList.toggle('active');
+    document.body.style.overflow = document.querySelector('.sidebar').classList.contains('open') ? 'hidden' : '';
+}}
+
 // Close mobile sidebar on nav click
 document.querySelectorAll('.nav-item').forEach(a => {{
     a.addEventListener('click', () => {{
         document.querySelector('.sidebar').classList.remove('open');
+        document.getElementById('sidebarOverlay').classList.remove('active');
+        document.body.style.overflow = '';
     }});
 }});
 </script>
