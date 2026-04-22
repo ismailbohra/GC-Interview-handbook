@@ -308,7 +308,6 @@ body {{
 /* Main content */
 .main-content {{
     margin-left: var(--sidebar-width);
-    max-width: 900px;
     padding: 40px 50px 100px;
 }}
 
