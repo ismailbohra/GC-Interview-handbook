@@ -1,0 +1,123 @@
+Python.Core 
+Advance Level Questions:
+•	Metaclass in Python [Answer] [Alternate Ref]
+•	Static Typing in Python [Answer]
+•	Data Classes [Answer] [Alternate Ref] [validation against dataclass]
+•	Warlus Operator [Answer, Answer]
+•	Else clause in try/except & for loop
+•	Descriptors [Answer]
+•	Abstract Base Class (ABC) in Python [Answer] [Alternate Ref]
+•	Have used any design pattern?
+•	Factory design pattern [Answer] [Alternate Ref]
+•	Adapter design pattern [Answer] [Alternate Ref]
+•	Singleton design pattern [Answer] [Alternate Ref]
+•	How does Python's garbage collection work? [Answer] [Answer]
+•	How does Python list.sort work at a high level? Is it stable? What is the runtime? [TimSort]
+•	What is MRO (Method Resolution Order), method resolution order? [Answer]
+•	How to restrict class variable creation in a class? - [Answer] [Answer] 
+•	What are destructors in python? __del__ () method 
+•	Use of nonlocal scope [Answer] [Answer]
+•	How to package code in Python? What package managers do you know? [Answer]
+•	What is the process of compilation and linking in Python?
+•	What are the wheels and eggs? What is the difference? [Answer]
+•	How to speed up existing Python code?
+•	How can you access a module written in Python from C? Vice versa?
+•	fstrings? fstrings are faster or. format or the old string formatting?
+•	Hashable Objects (dict keys, set elements)
+•	Why do we need GIL (Global Interpreter Lock) in Python
+•	Multithreading vs multiprocessing. When to use which one?
+•	Fundamental Difference between Multithreading & Asyncio
+•	How does context switch differ between Multithreading and Asyncio
+•	How do you share data between different process in case of multi-processing
+•	Difference between thread & process
+•	What is thread safety
+•	Use of __slot__ in python
+•	Use of __call__ in python
+•	Python Arrays (are they faster than list)
+•	How is dictionary implemented in Python (talk about key collision etc.) [Answer]
+•	Del keyword (when to use it, give an example)
+•	Garbage collection (reference counting, cyclic reference)
+•	Type Hints (Any, Union, Optional, Iterable etc.)
+•	Parameterized decorators
+•	Abstract Classes and subclassing an ABC
+•	Mixin Classes 
+•	Metaprogramming
+•	Functional programming
+•	What is closure in python?
+•	What is composition in python and example
+•	How to use Property getter and setter
+•	Dependency Injection [Answer]
+•	In Python 3.0, what is the function of ‘nonlocal’? [Answer]
+•	How to identify memory leaks in Python? (memory profiling or profiling tools)
+
+Complexity of Python Operations:
+https://www.ics.uci.edu/~pattis/ICS-33/lectures/complexitypython.txt
+https://wiki.python.org/moin/TimeComplexity
+https://www.ics.uci.edu/~brgallar/week8_2.html
+https://towardsdatascience.com/understanding-time-complexity-with-python-examples-2bda6e8158a7
+
+Medium Level Questions:
+
+•	Generators
+•	Decorators
+•	Defaultdict & ordereddict
+•	What is __new__ and __init__ method why do we need both these methods
+•	Copy, deep copy, and shallow copy of objects in Python - [Answer]
+•	How to write a custom context manager, give a use case
+•	What is monkey patching? How can you do it in Python? [Answer]
+•	How to implement a Queue, Stack & LinkedList in Python?
+•	Packing and unpacking of arguments in python - [Answer]
+•	What are profilers in Python?
+•	How to restrict object creation of a class once first object is created? - Create Singleton class
+•	WHAT ARE ITERATORS IN PYTHON?
+•	How would you define and access private variables in Python? - [Answer]
+•	Example of how __name__ == __main__ works? [Answer]
+•	What is generator expression and when to use them in comparison to list comprehension? [Answer]
+•	How will you use lazy functions to read excessively big files in Python?
+•	Multiple inheritance: if supported by python, and how method is resolved (MRO)
+•	Example of polymorphism – Function Overloading
+•	Example of how Python is call by reference
+•	Context managers implementation
+•	Use of .pyc files in python - bytecode - Read this blog to understand the usage and creation 
+•	Static method and Class method decorator
+•	List.sort() vs sorted(list) difference
+•	Data classes
+•	Difference between “is” and “==”
+•	Why do we need “finally”. (Actual Use in function call stack)
+•	Use of class method, static method and instance method 
+•	String slicing e.g.: “hello world” find “row” (using 1 slicing without split.)
+•	Memory management in python 
+•	Global vs nonlocal
+•	What is Enum? How to create it in python
+
+
+Basic Level Questions:
+•	What is the difference between range and xrange? How has this changed over time?
+•	What does this list comprehension do?
+•	packing and unpacking of arguments in python - [Answer]
+•	Merge two dictionaries in Python? - looping through another dictionary is not preferred. Use update () method
+•	How to sort a dictionary by key or value
+•	Method Overloading & Overriding
+•	How self-keyword works in Python?
+•	How to use Super method in Python?
+•	How enumerate work?
+•	How zip function works?
+•	Magic Methods, Dunder Methods in Python
+•	Difference between a module, package, and script
+•	Serialization and Deserialization
+•	Explain map, reduce, and filter functions
+•	Difference between args and kwargs
+•	Reverse a string or a list without using in built python method
+•	Explain diff and implementation of list.sort() and sorted(list)
+•	How to sort a dictionary and how do you iterate over a dictionary?
+•	Assert statement
+•	Given a tuple containing lists as elements. Example: 
+# What will be the output:
+t2 = ([1,2,3,4], [5,6,7,8])
+t2[0]. append(10)
+print(t2)
+Error (if yes, at what step) or output of print?
+•	Set operation:
+# What will be the output:
+a = set('abracadabra')
+print(a)

@@ -250,5 +250,5 @@ class C(A, B):
 # print(C.mro())
 # for cls in C.__mro__:
 #     print(f"{cls.__name__}: {[m for m in cls.__dict__ if not m.startswith('_')]}")
-c = C()
-print(c._P__y)
+# c = C()
+# print(c._P__y)

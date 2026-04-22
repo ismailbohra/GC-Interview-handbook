@@ -762,6 +762,150 @@ first_five = list(islice(fibonacci(1_000_000), 5))
 print(first_five)
 ```
 
+### Question: What is the difference between `*args` and `**kwargs`?
+
+Answer:
+
+`*args` collects extra positional arguments into a tuple, while `**kwargs` collects extra keyword arguments into a dictionary. Together they let a function accept a flexible number of inputs without changing its signature.
+
+Internally, this is just argument packing. On the calling side, `*` and `**` do the reverse: they unpack an iterable or a mapping into individual arguments. This symmetry is why the same syntax is used for both packing and unpacking.
+
+In real code, `*args` and `**kwargs` are common in decorators, wrappers, and APIs that forward arguments to an inner function. Best practice is to keep their meaning predictable: don't hide important parameters behind `**kwargs` if a caller would benefit from seeing them in the signature.
+
+```python
+def log_call(func):
+    def wrapper(*args, **kwargs):
+        print(f"calling {func.__name__} with {args} {kwargs}")
+        return func(*args, **kwargs)
+    return wrapper
+
+@log_call
+def create_user(name, role="viewer"):
+    return {"name": name, "role": role}
+
+create_user("asha", role="admin")
+
+# Unpacking on the call side
+defaults = {"name": "ravi", "role": "editor"}
+create_user(**defaults)
+```
+
+Key takeaway: `*args`/`**kwargs` are about argument forwarding and flexibility, not about being "fancy". Use them when you genuinely need variadic input.
+
+### Question: How do `enumerate` and `zip` work in Python?
+
+Answer:
+
+`enumerate` wraps an iterable and yields `(index, value)` pairs. `zip` takes multiple iterables and yields tuples of their aligned elements, stopping at the shortest one. Both return lazy iterators, not lists.
+
+Internally, both are implemented in C and are highly optimized. They are preferred over manual index tracking because they remove off-by-one bugs and read more naturally.
+
+In practice, `enumerate` replaces `for i in range(len(items))` patterns, and `zip` is the standard way to iterate two parallel sequences. A common pitfall is forgetting that `zip` truncates silently — use `itertools.zip_longest` if you need to align uneven inputs.
+
+```python
+names = ["asha", "ravi", "neha"]
+scores = [91, 78, 85]
+
+for rank, (name, score) in enumerate(zip(names, scores), start=1):
+    print(f"{rank}. {name} -> {score}")
+```
+
+Key takeaway: prefer `enumerate` and `zip` over manual indexing — they're idiomatic, faster, and harder to get wrong.
+
+### Question: How do `map`, `filter`, and `reduce` work in Python?
+
+Answer:
+
+`map(func, iterable)` applies a function to each element. `filter(func, iterable)` keeps elements where the function returns truthy. `reduce(func, iterable)` from `functools` collapses an iterable into a single value by repeatedly applying a binary function.
+
+All three return iterators (except `reduce`), so they are lazy and memory friendly. Internally, they are equivalent to small generator loops written in C.
+
+In modern Python, list comprehensions and generator expressions are usually preferred over `map` and `filter` because they read more naturally. `reduce` is used less often but is still useful for accumulating state, like building a running total or composing functions.
+
+```python
+from functools import reduce
+
+nums = [1, 2, 3, 4, 5]
+
+doubled = list(map(lambda x: x * 2, nums))           # [2, 4, 6, 8, 10]
+evens = list(filter(lambda x: x % 2 == 0, nums))     # [2, 4]
+total = reduce(lambda acc, x: acc + x, nums, 0)      # 15
+```
+
+Key takeaway: prefer comprehensions for readability, but understand `map`/`filter`/`reduce` because they appear often in functional-style code and interview discussions.
+
+### Question: What is the difference between `is` and `==` in Python?
+
+Answer:
+
+`==` compares values using the `__eq__` method. `is` compares object identity — whether two names refer to the exact same object in memory.
+
+Internally, `is` is just a pointer comparison, so it's fast but rarely what you want for value checks. The classic pitfall is comparing strings or numbers with `is`. CPython caches small integers and short strings, so `a is b` may accidentally work — until it doesn't.
+
+The correct rule is: use `==` for value equality, and use `is` only for singletons like `None`, `True`, and `False`. That's why linters specifically flag `if x == None` and recommend `if x is None`.
+
+```python
+a = [1, 2, 3]
+b = [1, 2, 3]
+c = a
+
+print(a == b)   # True  — same values
+print(a is b)   # False — different objects
+print(a is c)   # True  — same object
+
+x = None
+if x is None:   # correct idiom
+    print("missing")
+```
+
+Key takeaway: `==` for value, `is` for identity. Use `is None` always.
+
+### Question: What is the difference between shallow copy and deep copy?
+
+Answer:
+
+A shallow copy creates a new container but reuses the references to the inner objects. A deep copy recursively copies every nested object so the result shares nothing with the original.
+
+This matters for mutable nested structures. With a shallow copy, mutating an inner list will affect both copies. With a deep copy, the two are fully independent.
+
+The `copy` module exposes `copy.copy()` and `copy.deepcopy()`. In real systems, deep copies are expensive, so prefer shallow copies and treat data as immutable when possible. A common pitfall is using `dict(other)` or `list(other)` and assuming it's a deep copy — it isn't.
+
+```python
+import copy
+
+original = {"user": "asha", "roles": ["admin", "editor"]}
+shallow = copy.copy(original)
+deep = copy.deepcopy(original)
+
+shallow["roles"].append("viewer")
+print(original["roles"])  # ['admin', 'editor', 'viewer'] — leaked!
+print(deep["roles"])      # ['admin', 'editor']           — isolated
+```
+
+Key takeaway: shallow copy is cheap but shares inner state. Reach for `deepcopy` only when nested mutation must be isolated.
+
+### Question: What is the `assert` statement used for?
+
+Answer:
+
+`assert` checks that a condition is true and raises `AssertionError` if it isn't. It's intended for internal sanity checks and invariants during development, not for validating user input or business rules.
+
+Internally, the interpreter can strip out asserts when Python is run with `-O` (optimized mode), so any code with side effects inside an `assert` may silently disappear. That's why asserts must never carry logic that the program depends on.
+
+In production code, asserts are useful for documenting expectations: "at this point, this list must not be empty". For real input validation, raise an explicit exception like `ValueError`.
+
+```python
+def average(values):
+    assert len(values) > 0, "values must not be empty"   # internal check
+    return sum(values) / len(values)
+
+def create_user(age):
+    if age < 0:                                          # real validation
+        raise ValueError("age must be non-negative")
+```
+
+Key takeaway: use `assert` for invariants in development, and proper exceptions for runtime validation.
+
 ## Advanced Python
 
 ### Question: What is Method Resolution Order in Python?
@@ -1123,6 +1267,443 @@ print(weak())        # None — garbage collected, weak ref doesn't prevent it
 ```
 
 Key takeaway: GC handles memory, but not external resources. Always use context managers for files, sockets, and connections regardless of GC behavior.
+
+### Question: What are metaclasses in Python?
+
+Answer:
+
+A metaclass is the class of a class. Just as a class defines how an instance behaves, a metaclass defines how a class itself behaves. By default, every class is created by `type`, which is itself a metaclass.
+
+Internally, when Python sees `class Foo:`, it calls the metaclass to construct the class object. Overriding `__init__` or `__new__` on a metaclass lets you intercept and modify class creation — adding attributes, registering subclasses, enforcing contracts, or rewriting methods.
+
+In real systems, metaclasses are used by ORMs like Django and SQLAlchemy to map class declarations to database tables, and by ABCs to enforce method contracts. Best practice is to avoid metaclasses unless simpler tools (decorators, `__init_subclass__`) won't work — they make code harder to read.
+
+```python
+class AutoRegister(type):
+    registry = {}
+
+    def __init__(cls, name, bases, namespace):
+        super().__init__(name, bases, namespace)
+        if name != "Plugin":
+            AutoRegister.registry[name] = cls
+
+class Plugin(metaclass=AutoRegister):
+    pass
+
+class CsvExporter(Plugin):
+    pass
+
+class JsonExporter(Plugin):
+    pass
+
+print(AutoRegister.registry)
+# {'CsvExporter': <class ...>, 'JsonExporter': <class ...>}
+```
+
+Key takeaway: metaclasses customize class creation itself. Powerful, but reach for them last.
+
+### Question: What are descriptors in Python?
+
+Answer:
+
+A descriptor is any object that defines `__get__`, `__set__`, or `__delete__`. When such an object is assigned to a class attribute, Python routes attribute access through the descriptor instead of returning it directly.
+
+Internally, descriptors are how `property`, `classmethod`, `staticmethod`, and ORM fields all work under the hood. They give you a clean place to put validation, lazy loading, or computed values without adding boilerplate to every instance.
+
+In real code, descriptors are useful for typed fields, enforcing invariants, or building reusable attribute behavior across many classes. Best practice is to prefer `property` for simple cases and write a full descriptor only when the same logic is needed on many attributes.
+
+```python
+class PositiveInt:
+    def __set_name__(self, owner, name):
+        self.name = "_" + name
+
+    def __get__(self, instance, owner):
+        return getattr(instance, self.name, 0)
+
+    def __set__(self, instance, value):
+        if not isinstance(value, int) or value < 0:
+            raise ValueError("must be non-negative int")
+        setattr(instance, self.name, value)
+
+class Order:
+    quantity = PositiveInt()
+
+o = Order()
+o.quantity = 5
+print(o.quantity)   # 5
+o.quantity = -1     # ValueError
+```
+
+Key takeaway: descriptors are the engine behind `property` and ORMs. Use them when you need reusable, validated attribute behavior.
+
+### Question: What are dataclasses and when should you use them?
+
+Answer:
+
+A dataclass is a class decorated with `@dataclass` that auto-generates `__init__`, `__repr__`, `__eq__`, and optionally ordering and immutability. It removes boilerplate for classes that primarily hold data.
+
+Internally, the decorator inspects type-annotated class attributes and writes the dunder methods at class creation time. Options like `frozen=True` make instances hashable and immutable, while `slots=True` (3.10+) reduces memory.
+
+In real systems, dataclasses are great for DTOs, configuration objects, and value types. For richer validation (coercion, constraints), prefer Pydantic. A common pitfall is using a mutable default like `list` directly — use `field(default_factory=list)` instead.
+
+```python
+from dataclasses import dataclass, field
+
+@dataclass(frozen=True, slots=True)
+class User:
+    id: int
+    name: str
+    roles: list[str] = field(default_factory=list)
+
+u = User(1, "asha", ["admin"])
+print(u)        # User(id=1, name='asha', roles=['admin'])
+# u.id = 2     # FrozenInstanceError
+```
+
+Key takeaway: dataclasses kill boilerplate for data-holding classes. Reach for Pydantic when you also need validation.
+
+### Question: What is the walrus operator `:=`?
+
+Answer:
+
+The walrus operator (`:=`) assigns a value to a variable as part of an expression. It was added in Python 3.8 to avoid duplicating computation between a condition and the body that uses the result.
+
+Internally, it's just an assignment expression that returns the assigned value. Used well, it makes code shorter and clearer. Used badly, it makes expressions dense and hard to follow.
+
+In practice, the walrus shines in `while` loops over a stream and in comprehensions where you want to filter and capture in one pass. Best practice is to keep walrus expressions simple — if it requires a second read to understand, it's the wrong tool.
+
+```python
+# Read chunks until EOF without computing the read twice
+with open("big.log", "rb") as f:
+    while chunk := f.read(8192):
+        process(chunk)
+
+# Filter and reuse a computed value in a comprehension
+values = [10, 23, 7, 42, 5]
+result = [y for x in values if (y := x * 2) > 20]
+print(result)   # [46, 84]
+```
+
+Key takeaway: the walrus removes redundant computation in loops and comprehensions. Use it sparingly and only when it improves clarity.
+
+### Question: What is `__slots__` in Python and when should you use it?
+
+Answer:
+
+`__slots__` is a class attribute that fixes the set of allowed instance attributes. Defining it stops Python from creating a per-instance `__dict__`, which reduces memory and makes attribute access slightly faster.
+
+Internally, without `__slots__`, every instance carries a dictionary so you can attach any attribute at runtime. With `__slots__`, attributes are stored in fixed slots in the instance, much like fields in a C struct.
+
+Use `__slots__` when you create a very large number of small instances — caches, ORM rows, points in a graph. Don't use it on classes that need flexibility, dynamic attributes, or multiple inheritance from non-slotted bases. A common pitfall is forgetting that subclasses must also define `__slots__` to keep the memory benefit.
+
+```python
+class PointDict:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+class PointSlots:
+    __slots__ = ("x", "y")
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+p = PointSlots(1, 2)
+# p.z = 3   # AttributeError: 'PointSlots' object has no attribute 'z'
+```
+
+Key takeaway: `__slots__` saves memory at scale. Skip it for ordinary classes where flexibility matters more.
+
+### Question: What is `__call__` in Python?
+
+Answer:
+
+`__call__` is the dunder method that makes an instance callable like a function. Defining it lets `obj()` execute logic on the instance.
+
+Internally, `obj()` is just sugar for `type(obj).__call__(obj, ...)`. This is the same mechanism that makes classes themselves callable — `MyClass()` invokes `type.__call__`, which in turn calls `__new__` and `__init__`.
+
+In real systems, `__call__` is used for callable objects that carry state — function-like decorators, model wrappers, retry strategies, and stateful pipelines. Best practice is to prefer plain functions or closures for stateless behavior; use `__call__` when state and configuration matter.
+
+```python
+class RateLimiter:
+    def __init__(self, max_calls):
+        self.max_calls = max_calls
+        self.count = 0
+
+    def __call__(self, func):
+        def wrapper(*args, **kwargs):
+            if self.count >= self.max_calls:
+                raise RuntimeError("rate limit exceeded")
+            self.count += 1
+            return func(*args, **kwargs)
+        return wrapper
+
+@RateLimiter(max_calls=2)
+def send_email(to):
+    print("sending to", to)
+
+send_email("a@x.com")
+send_email("b@x.com")
+# send_email("c@x.com")  # RuntimeError
+```
+
+Key takeaway: `__call__` turns objects into callables that carry state. Use it for stateful, configurable behavior.
+
+### Question: What is a closure in Python?
+
+Answer:
+
+A closure is a function that remembers variables from the enclosing scope where it was defined, even after that scope has finished executing. The inner function "closes over" those variables.
+
+Internally, Python attaches a `__closure__` tuple to the function holding cell objects that reference the captured names. This is why decorators and factory functions can carry state without using global variables or classes.
+
+Closures are common in decorators, callbacks, and small factory functions. Best practice is to keep them small and predictable. A common pitfall is mutating a captured variable — you'll need `nonlocal` to rebind it inside the inner function.
+
+```python
+def make_counter(start=0):
+    count = start
+    def increment(step=1):
+        nonlocal count
+        count += step
+        return count
+    return increment
+
+counter = make_counter(10)
+print(counter())    # 11
+print(counter(5))   # 16
+```
+
+Key takeaway: closures capture enclosing-scope variables and are the foundation of decorators and factory functions.
+
+### Question: How do you write a parameterized decorator?
+
+Answer:
+
+A parameterized decorator is a decorator that takes its own arguments. You implement it as a function that returns a normal decorator, which then returns the wrapper. That gives three levels of nesting.
+
+Internally, when you write `@retry(times=3)`, Python first calls `retry(times=3)` to get the actual decorator, then applies that decorator to the function. The arguments are captured by closure and used inside the wrapper.
+
+In real systems, parameterized decorators are used for retries, caching with TTL, role-based access control, and rate limiting. Best practice is to use `functools.wraps` so the wrapped function keeps its name, docstring, and signature.
+
+```python
+import functools, time
+
+def retry(times=3, delay=0.1):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            last_exc = None
+            for _ in range(times):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as exc:
+                    last_exc = exc
+                    time.sleep(delay)
+            raise last_exc
+        return wrapper
+    return decorator
+
+@retry(times=3, delay=0.2)
+def fetch():
+    raise ConnectionError("flaky network")
+```
+
+Key takeaway: a parameterized decorator is a function that returns a decorator. Always use `functools.wraps` to preserve metadata.
+
+### Question: What is monkey patching in Python?
+
+Answer:
+
+Monkey patching means modifying or replacing attributes of a module or class at runtime, after it has been imported. It works because Python objects are mutable and lookups happen dynamically.
+
+Internally, you're just reassigning attributes on a class or module object. Because lookups go through `__dict__`, the next caller sees the new behavior immediately.
+
+In real code, monkey patching is most useful in tests — for example, patching `time.sleep` or a network client. Outside of tests it's risky: it creates spooky action at a distance and breaks expectations for anyone reading the code. The cleaner alternatives are dependency injection or `unittest.mock.patch` scoped to a test.
+
+```python
+from unittest.mock import patch
+import requests
+
+def get_user(uid):
+    return requests.get(f"/users/{uid}").json()
+
+def test_get_user():
+    with patch("requests.get") as mock_get:
+        mock_get.return_value.json.return_value = {"id": 1, "name": "asha"}
+        assert get_user(1)["name"] == "asha"
+```
+
+Key takeaway: monkey patching is fine in tests and risky in production. Prefer DI or scoped patches over global mutations.
+
+### Question: What are type hints in Python?
+
+Answer:
+
+Type hints are annotations that document the expected types of variables, parameters, and return values. They are not enforced at runtime by Python itself, but they enable static type checkers like mypy or Pyright to catch bugs early.
+
+Internally, hints are stored in `__annotations__` and ignored by the interpreter. Tools, IDEs, and frameworks like FastAPI and Pydantic read them to provide validation, autocomplete, and documentation.
+
+Best practice is to type the public API of every module — function signatures and return types — and to use `Optional`, `Union`, `Iterable`, `Sequence`, and generics like `list[int]` to express intent precisely. A common pitfall is over-typing internal helpers; let inference do the work where it can.
+
+```python
+from typing import Optional, Iterable
+
+def average(values: Iterable[float]) -> Optional[float]:
+    values = list(values)
+    if not values:
+        return None
+    return sum(values) / len(values)
+```
+
+Key takeaway: type hints document intent, catch bugs in CI, and power frameworks. Type your public API; let inference handle the rest.
+
+### Question: What is a mixin class in Python?
+
+Answer:
+
+A mixin is a small class designed to add a focused capability to other classes through inheritance, but never to be instantiated on its own. It's how Python expresses "horizontal" feature composition without forcing a deep inheritance tree.
+
+Internally, mixins rely on the MRO. When a class inherits from `Base, MixinA, MixinB`, attribute lookups walk the MRO and find behavior contributed by each mixin in order. This is why mixin design must be careful about `super()` calls.
+
+In real code, mixins are great for cross-cutting concerns like serialization, logging, or auditing. Best practice is to keep mixins narrow, document the methods they expect on the host class, and prefer composition when the relationship isn't truly "is-a".
+
+```python
+class JsonMixin:
+    def to_json(self):
+        import json
+        return json.dumps(self.__dict__)
+
+class TimestampMixin:
+    def stamp(self):
+        from datetime import datetime
+        self.updated_at = datetime.utcnow().isoformat()
+
+class User(JsonMixin, TimestampMixin):
+    def __init__(self, name):
+        self.name = name
+
+u = User("asha")
+u.stamp()
+print(u.to_json())
+```
+
+Key takeaway: mixins add focused capabilities through inheritance. Keep them small and watch the MRO.
+
+### Question: How do you use `@property` for getters and setters?
+
+Answer:
+
+`@property` turns a method into a read-only attribute. Adding `@<name>.setter` lets you intercept assignment, and `@<name>.deleter` handles `del`. The result is attribute-style access with method-level control.
+
+Internally, `property` is a descriptor that routes `obj.x` and `obj.x = value` through your getter and setter functions. This lets you start with a plain attribute and later add validation or computation without changing the API.
+
+In real systems, properties are used for derived values, lazy computation, and validated fields. Best practice is to keep property logic cheap — callers expect attribute access to be fast and side-effect free.
+
+```python
+class Temperature:
+    def __init__(self, celsius):
+        self._celsius = celsius
+
+    @property
+    def celsius(self):
+        return self._celsius
+
+    @celsius.setter
+    def celsius(self, value):
+        if value < -273.15:
+            raise ValueError("below absolute zero")
+        self._celsius = value
+
+    @property
+    def fahrenheit(self):
+        return self._celsius * 9 / 5 + 32
+
+t = Temperature(25)
+print(t.fahrenheit)   # 77.0
+t.celsius = 30
+```
+
+Key takeaway: `@property` upgrades plain attributes to validated or computed ones without changing the caller's syntax.
+
+### Question: What is dependency injection and why does it matter?
+
+Answer:
+
+Dependency injection (DI) means passing a component's dependencies in from the outside instead of letting it construct or import them itself. The component declares what it needs through its constructor or method parameters.
+
+Internally, DI is just constructor and parameter wiring — no special framework is required in Python. The benefit is decoupling: the component doesn't know which concrete implementation it's using, only its interface.
+
+In real systems, DI makes code testable (swap in a mock), configurable (swap in a different backend), and easier to evolve. Best practice is to inject collaborators at the boundary (in `main` or a factory), not deep inside business logic.
+
+```python
+class EmailNotifier:
+    def send(self, to, msg): print(f"email -> {to}: {msg}")
+
+class SmsNotifier:
+    def send(self, to, msg): print(f"sms -> {to}: {msg}")
+
+class CheckoutService:
+    def __init__(self, notifier):
+        self.notifier = notifier   # injected
+
+    def checkout(self, user):
+        self.notifier.send(user, "order placed")
+
+CheckoutService(EmailNotifier()).checkout("asha@x.com")
+CheckoutService(SmsNotifier()).checkout("+91-...")
+```
+
+Key takeaway: DI replaces hidden dependencies with explicit ones, making code testable and swappable.
+
+### Question: How do you identify memory leaks in Python?
+
+Answer:
+
+A memory leak in Python usually means objects are kept alive longer than expected — by global caches, lingering references, closures, or unclosed resources. The garbage collector handles cycles, but it can't free objects that are still reachable.
+
+Internally, you investigate leaks with tools like `tracemalloc` (built in), `objgraph`, or `memory_profiler`. `tracemalloc` shows where memory was allocated, and `objgraph` shows what's keeping objects alive.
+
+In real backend systems, common leaks come from module-level caches that never evict, request-scoped objects accidentally stored on a long-lived service, and unclosed file or network handles. Best practice is to bound caches (`functools.lru_cache(maxsize=...)`), close resources with context managers, and run periodic memory snapshots in load tests.
+
+```python
+import tracemalloc
+
+tracemalloc.start()
+# ... run workload ...
+snapshot = tracemalloc.take_snapshot()
+for stat in snapshot.statistics("lineno")[:5]:
+    print(stat)
+```
+
+Key takeaway: leaks come from references, not from "missing free". Use `tracemalloc`, bound caches, and close resources to prevent them.
+
+### Question: What is the difference between `global` and `nonlocal`?
+
+Answer:
+
+`global` tells Python that a name inside a function refers to a variable at the module level. `nonlocal` tells it the name refers to a variable in the nearest enclosing function scope, not the module scope.
+
+Internally, both keywords change name resolution at compile time. Without them, an assignment inside a function creates a new local variable, which is what causes "UnboundLocalError" surprises.
+
+In practice, `global` is rarely a good idea — it couples functions to module state. `nonlocal` is more common in closures and decorators where the inner function needs to update a captured variable. Best practice is to prefer returning new values over mutating captured ones whenever possible.
+
+```python
+counter = 0
+
+def bump_global():
+    global counter
+    counter += 1
+
+def make_counter():
+    count = 0
+    def inc():
+        nonlocal count
+        count += 1
+        return count
+    return inc
+```
+
+Key takeaway: `global` reaches the module, `nonlocal` reaches the enclosing function. Prefer return values to either.
 
 ## OOP Concepts
 
@@ -1486,6 +2067,257 @@ service.place_order("asha@example.com", "SKU-100", 2)
 
 Key takeaway: composition gives you flexibility to swap, mock, or recombine parts. Inheritance locks you into a rigid tree structure that becomes brittle as requirements change.
 
+### Question: What is the difference between method overloading and method overriding?
+
+Answer:
+
+Method overriding is when a subclass provides a new implementation of a method already defined in its parent. Method overloading means defining multiple methods with the same name but different parameter signatures.
+
+Python supports overriding directly through normal inheritance. It does not support traditional overloading the way Java or C++ does — only the last definition with a given name survives. Instead, Python uses default arguments, `*args`/`**kwargs`, or `functools.singledispatch` to express overloaded behavior.
+
+In real code, overriding is the everyday tool for polymorphism. "Overloading" in Python usually means writing one flexible function or registering multiple implementations with `singledispatch` based on argument type.
+
+```python
+from functools import singledispatch
+
+class Animal:
+    def speak(self):
+        return "generic sound"
+
+class Dog(Animal):
+    def speak(self):                 # overriding
+        return "woof"
+
+@singledispatch
+def render(value):                   # "overloading" by type
+    return str(value)
+
+@render.register
+def _(value: list):
+    return ", ".join(render(v) for v in value)
+
+@render.register
+def _(value: dict):
+    return "; ".join(f"{k}={render(v)}" for k, v in value.items())
+```
+
+Key takeaway: Python has true overriding and uses `singledispatch` or flexible signatures in place of classical overloading.
+
+### Question: What is an Abstract Base Class (ABC) and when should you use one?
+
+Answer:
+
+An Abstract Base Class defines a contract: a set of methods that any subclass must implement before it can be instantiated. In Python, you build one by inheriting from `abc.ABC` and decorating required methods with `@abstractmethod`.
+
+Internally, ABCs use a metaclass to track abstract methods. Trying to instantiate a subclass that hasn't implemented all of them raises `TypeError`. ABCs also support virtual subclasses through `register`, which is how `collections.abc` declares classes like `list` to be `Iterable`.
+
+In real systems, ABCs are useful when you have multiple implementations of the same interface — storage backends, notifiers, parsers — and want to fail fast if one is incomplete. Best practice is to keep abstract interfaces small; large ABCs become hard to implement.
+
+```python
+from abc import ABC, abstractmethod
+
+class Notifier(ABC):
+    @abstractmethod
+    def send(self, to: str, message: str) -> None: ...
+
+class EmailNotifier(Notifier):
+    def send(self, to, message):
+        print(f"email -> {to}: {message}")
+
+# class BrokenNotifier(Notifier): pass
+# BrokenNotifier()  # TypeError: Can't instantiate abstract class
+```
+
+Key takeaway: ABCs make interfaces explicit and prevent half-implemented subclasses from running.
+
+### Question: What is the Singleton design pattern and how do you implement it in Python?
+
+Answer:
+
+A Singleton is a class that always returns the same instance, no matter how many times it is "constructed". It's typically used for shared resources like configuration, connection pools, or in-process caches.
+
+In Python, the cleanest implementations override `__new__` to return a cached instance, use a metaclass that controls instantiation, or simply expose a module — modules are themselves singletons. The module approach is usually the most Pythonic.
+
+In real code, real singletons are rare and easy to misuse. They make testing harder and hide global state. Best practice is to question whether a singleton is really needed — dependency injection of a single instance often works better.
+
+```python
+class Settings:
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __init__(self):
+        if not hasattr(self, "_loaded"):
+            self.db_url = "postgres://..."
+            self._loaded = True
+
+a = Settings()
+b = Settings()
+print(a is b)  # True
+```
+
+Key takeaway: prefer modules or DI over singleton classes. When you do need one, override `__new__` to cache the instance.
+
+### Question: What is the Factory design pattern and how do you implement it in Python?
+
+Answer:
+
+The Factory pattern centralizes object creation behind a function or method. Callers ask for an object by some key or configuration, and the factory decides which concrete class to construct.
+
+Internally, this is just a dispatch table or a `match`/`if` block that maps inputs to constructors. The benefit is that adding a new variant is a one-line registration, and callers stay decoupled from concrete classes.
+
+In real systems, factories are used for plugin systems, parser selection by file type, and notification channels. Best practice is to keep the factory thin — it should choose, not configure.
+
+```python
+class JsonParser:
+    def parse(self, raw): ...
+
+class XmlParser:
+    def parse(self, raw): ...
+
+_PARSERS = {
+    "json": JsonParser,
+    "xml": XmlParser,
+}
+
+def parser_for(kind):
+    try:
+        return _PARSERS[kind]()
+    except KeyError:
+        raise ValueError(f"unknown parser: {kind}")
+
+p = parser_for("json")
+```
+
+Key takeaway: factories isolate "which class do I need?" from "how do I use it?". They make plugin-style extension trivial.
+
+### Question: What is the Adapter design pattern and how do you implement it in Python?
+
+Answer:
+
+The Adapter pattern wraps an existing class so it matches an interface that a client expects. The adapter forwards calls to the wrapped object, possibly translating arguments or return values.
+
+Internally, an adapter is just a thin class that holds a reference to the adaptee and exposes the target interface. The adaptee doesn't change — the adapter does the translation.
+
+In real systems, adapters are common when integrating third-party libraries or legacy code that doesn't fit your application's interfaces. Best practice is to keep adapters narrow and focused on translation, not business logic.
+
+```python
+class LegacyLogger:
+    def write_line(self, level, text):
+        print(f"[{level.upper()}] {text}")
+
+class LoggerAdapter:                # target interface used by app
+    def __init__(self, legacy):
+        self._legacy = legacy
+
+    def info(self, msg):
+        self._legacy.write_line("info", msg)
+
+    def error(self, msg):
+        self._legacy.write_line("error", msg)
+
+log = LoggerAdapter(LegacyLogger())
+log.info("started")
+log.error("boom")
+```
+
+Key takeaway: adapters bridge an existing class to the interface your code expects, without changing either side.
+
+### Question: What is the difference between staticmethod, classmethod, and instance methods?
+
+Answer:
+
+An instance method takes `self` and operates on a specific instance. A `classmethod` takes `cls` and operates on the class itself — useful for alternative constructors or class-level state. A `staticmethod` takes neither and is just a function namespaced inside the class.
+
+Internally, both decorators are descriptors that change how the method is bound when accessed. `classmethod` injects the class, `staticmethod` injects nothing, and a plain method injects the instance.
+
+In real systems, `classmethod` is commonly used for `from_dict`, `from_json`, or factory-style constructors. `staticmethod` is fine for utilities that logically belong with the class but don't need its state. Instance methods carry behavior tied to a specific object's state.
+
+```python
+class User:
+    def __init__(self, name, role):
+        self.name = name
+        self.role = role
+
+    @classmethod
+    def from_dict(cls, data):              # alternative constructor
+        return cls(data["name"], data["role"])
+
+    @staticmethod
+    def is_valid_role(role):               # pure helper
+        return role in {"admin", "viewer"}
+
+    def greet(self):                       # uses instance state
+        return f"hello {self.name}"
+```
+
+Key takeaway: `classmethod` for alt constructors and class-level work, `staticmethod` for utilities, instance methods for object behavior.
+
+### Question: What are magic (dunder) methods in Python?
+
+Answer:
+
+Magic methods, or dunder methods, are special methods named with leading and trailing double underscores. Python calls them automatically in response to language operations — construction, comparison, iteration, arithmetic, attribute access, context management, and more.
+
+Internally, when you write `a + b`, Python calls `a.__add__(b)`. When you write `len(x)`, it calls `x.__len__()`. Implementing these methods makes your custom objects behave like built-in types.
+
+In real systems, dunders are how you make a class iterable (`__iter__`/`__next__`), hashable (`__hash__`/`__eq__`), comparable (`__lt__`), printable (`__repr__`), or usable in `with` blocks (`__enter__`/`__exit__`). Best practice is to implement only the dunders you actually need and to keep their semantics consistent with built-in expectations.
+
+```python
+class Money:
+    def __init__(self, amount, currency):
+        self.amount = amount
+        self.currency = currency
+
+    def __repr__(self):
+        return f"Money({self.amount}, {self.currency!r})"
+
+    def __eq__(self, other):
+        return (self.amount, self.currency) == (other.amount, other.currency)
+
+    def __add__(self, other):
+        if self.currency != other.currency:
+            raise ValueError("currency mismatch")
+        return Money(self.amount + other.amount, self.currency)
+
+print(Money(10, "INR") + Money(5, "INR"))
+```
+
+Key takeaway: dunders integrate your classes with Python's built-in syntax and protocols. Implement them deliberately and consistently.
+
+### Question: What is the difference between `__new__` and `__init__`?
+
+Answer:
+
+`__new__` is the static method responsible for actually creating and returning a new instance. `__init__` runs after the instance exists and initializes its state. By default, you only override `__init__`.
+
+Internally, `MyClass(...)` first calls `__new__(cls, ...)` to allocate the object, then `__init__(self, ...)` to set it up. If `__new__` returns an instance of a different class, `__init__` is skipped.
+
+In real systems, override `__new__` only when you need to control instance creation itself — for singletons, immutable types like `tuple` or `str` subclasses, or to cache and return existing objects. For everything else, `__init__` is enough.
+
+```python
+class CachedPoint:
+    _cache = {}
+
+    def __new__(cls, x, y):
+        key = (x, y)
+        if key not in cls._cache:
+            cls._cache[key] = super().__new__(cls)
+        return cls._cache[key]
+
+    def __init__(self, x, y):
+        self.x, self.y = x, y
+
+a = CachedPoint(1, 2)
+b = CachedPoint(1, 2)
+print(a is b)   # True
+```
+
+Key takeaway: `__new__` creates, `__init__` configures. Override `__new__` only when creation itself must be controlled.
+
 ## Concurrency (Threads / Processes / Asyncio)
 
 ### Question: What is the difference between a thread and a process?
@@ -1813,6 +2645,111 @@ Decision matrix:
 # | CPU-bound  | C extension / NumPy   | GIL released in C code       |
 # | Mixed      | Processes + async I/O | Isolate CPU from I/O         |
 ```
+
+### Question: When should you use multithreading versus multiprocessing?
+
+Answer:
+
+Use multithreading for I/O-bound work — network calls, file reads, database queries — where threads spend most of their time waiting. Use multiprocessing for CPU-bound work — number crunching, image processing, parsing — where you need real parallelism across cores.
+
+Internally, the difference comes down to the GIL. Threads share a single interpreter and one thread runs Python bytecode at a time, but the GIL is released during I/O. Processes each have their own interpreter and memory space, so they truly run in parallel.
+
+In real systems, the cost matters. Threads are cheap to spawn but limited by the GIL. Processes have higher startup cost and require serialization to share data, but they scale CPU work linearly with cores. Best practice is to start with `concurrent.futures` — `ThreadPoolExecutor` for I/O, `ProcessPoolExecutor` for CPU.
+
+```python
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+
+def fetch(url): ...        # I/O-bound -> threads
+def crunch(chunk): ...     # CPU-bound -> processes
+
+with ThreadPoolExecutor(max_workers=16) as pool:
+    results = list(pool.map(fetch, urls))
+
+with ProcessPoolExecutor() as pool:
+    totals = list(pool.map(crunch, big_chunks))
+```
+
+Key takeaway: threads for waiting, processes for computing. Wrong choice means you pay overhead without gaining throughput.
+
+### Question: What is thread safety and how do you achieve it in Python?
+
+Answer:
+
+Thread safety means a piece of code behaves correctly when accessed by multiple threads at the same time. The risk areas are shared mutable state and any operation that isn't atomic.
+
+Internally, even simple-looking operations like `counter += 1` are actually three steps — read, add, write — and can interleave between threads. The GIL prevents low-level data corruption but does not prevent logical race conditions.
+
+In real code, you make access safe with `threading.Lock`, `RLock`, `Semaphore`, or higher-level primitives like `queue.Queue` for producer/consumer patterns. Best practice is to minimize shared state in the first place — pass data through queues, prefer immutable values, and keep critical sections short.
+
+```python
+import threading
+
+counter = 0
+lock = threading.Lock()
+
+def bump():
+    global counter
+    with lock:           # critical section
+        counter += 1
+
+threads = [threading.Thread(target=bump) for _ in range(1000)]
+for t in threads: t.start()
+for t in threads: t.join()
+print(counter)   # 1000, every time
+```
+
+Key takeaway: the GIL doesn't make your logic thread-safe. Protect shared state with locks or, better, avoid sharing it.
+
+### Question: How do you share data between processes in Python?
+
+Answer:
+
+Processes don't share memory by default, so you have to move data across the process boundary explicitly. The standard ways are queues, pipes, shared memory, and managers from the `multiprocessing` module.
+
+Internally, `multiprocessing.Queue` and `Pipe` use pickling to serialize objects between processes. `multiprocessing.shared_memory` (Python 3.8+) gives you a raw memory block that multiple processes can map without copying. `Manager` exposes proxy objects (lists, dicts) that live in a server process.
+
+In real systems, queues are the simplest and safest choice for producer/consumer workloads. Shared memory is the right tool for large numerical arrays — for example, sharing a NumPy array across workers without serialization. Best practice is to keep cross-process payloads small; serialization cost dominates quickly.
+
+```python
+from multiprocessing import Process, Queue
+
+def worker(q):
+    q.put({"pid": "worker", "result": 42})
+
+if __name__ == "__main__":
+    q = Queue()
+    p = Process(target=worker, args=(q,))
+    p.start(); p.join()
+    print(q.get())   # {'pid': 'worker', 'result': 42}
+```
+
+Key takeaway: use queues for messages, shared memory for big arrays, managers for shared collections. Always factor in serialization cost.
+
+### Question: How does context switching differ between threads and asyncio?
+
+Answer:
+
+In threading, context switches are preemptive and managed by the operating system. The OS can pause any thread at any time and schedule another, which is what allows threads to make progress during blocking I/O — but it also forces locking around shared state.
+
+In asyncio, context switches are cooperative and happen only at `await` points. The event loop runs one coroutine at a time on a single thread and switches when that coroutine voluntarily yields. There is no preemption, so you don't need locks for ordinary in-loop state.
+
+In real systems, asyncio gives you very low overhead per task and predictable scheduling, which makes it ideal for high-fan-out network workloads. Threading gives you simpler programming for libraries that aren't async-aware, at the cost of OS-level context switches and lock discipline. A common pitfall in asyncio is calling a blocking function inside a coroutine — it freezes the entire loop.
+
+```python
+import asyncio, time
+
+async def task(name):
+    print(f"{name} start")
+    await asyncio.sleep(1)        # cooperative yield
+    print(f"{name} end")
+
+async def main():
+    await asyncio.gather(task("a"), task("b"), task("c"))
+
+asyncio.run(main())
+```
+
+Key takeaway: threads switch preemptively (OS-driven), asyncio switches cooperatively (await-driven). Mixing the two requires care.
 
 ## Testing
 
@@ -2893,6 +3830,52 @@ Best practice is to design the table around the access pattern first. The common
 
 ```python
 table.get_item(Key={"pk": "USER#101", "sk": "PROFILE"})
+```
+
+### Question: What is the difference between RANK, DENSE_RANK, and ROW_NUMBER in SQL?
+
+Answer:
+
+All three are window functions used to assign a position to each row within a partition based on an `ORDER BY` clause, but they differ in how they handle ties.
+
+`ROW_NUMBER()` assigns a unique sequential integer to every row, even when ordering values are equal — ties are broken arbitrarily. `RANK()` gives tied rows the same rank but then **skips** the next ranks (1, 2, 2, 4). `DENSE_RANK()` also gives tied rows the same rank but does **not skip** — the next rank is always consecutive (1, 2, 2, 3).
+
+The common interview use case is "find the Nth highest salary per department," which is solved with `DENSE_RANK()` inside a CTE or subquery.
+
+```sql
+-- Sample data
+-- employees(id, name, dept, salary)
+
+SELECT
+    name,
+    dept,
+    salary,
+    ROW_NUMBER() OVER (PARTITION BY dept ORDER BY salary DESC) AS rn,
+    RANK()       OVER (PARTITION BY dept ORDER BY salary DESC) AS rnk,
+    DENSE_RANK() OVER (PARTITION BY dept ORDER BY salary DESC) AS drnk
+FROM employees;
+
+-- Find the 2nd highest salary in each department (handles ties correctly)
+WITH ranked AS (
+    SELECT
+        name,
+        dept,
+        salary,
+        DENSE_RANK() OVER (PARTITION BY dept ORDER BY salary DESC) AS drnk
+    FROM employees
+)
+SELECT name, dept, salary
+FROM ranked
+WHERE drnk = 2;
+
+-- Top 3 highest-paid employees overall, ties allowed
+SELECT name, salary
+FROM (
+    SELECT name, salary,
+           DENSE_RANK() OVER (ORDER BY salary DESC) AS drnk
+    FROM employees
+) t
+WHERE drnk <= 3;
 ```
 
 ## System Design / Principles
