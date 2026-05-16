@@ -184,7 +184,7 @@ def build_html(md_text: str) -> str:
 
   gtag('config', 'G-SRST1P6KES');
 </script>
-<title>Python Core GC-Interview Handbook</title>
+<title>Python Core Interview Handbook</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
@@ -842,7 +842,7 @@ strong {{
 
 <nav class="sidebar" id="sidebar">
     <div class="sidebar-header">
-        <h2>Interview GC-Interview Handbook</h2>
+        <h2>Interview Handbook</h2>
         <div class="stats">{total_q} Questions · {total_s} Topics</div>
     </div>
     {sidebar}

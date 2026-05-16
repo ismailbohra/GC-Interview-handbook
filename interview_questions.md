@@ -1,4 +1,4 @@
-# Python GC-Interview Preparation Handbook
+# Python Interview Preparation Handbook
 
 This handbook organizes the raw question list into topic-wise sections and adds interview-ready answers below each question. The answers start simple, then go deeper into internals, tradeoffs, and practical engineering use.
 
